@@ -52,7 +52,7 @@ Contributions to WSL_PLUS are welcome! If you'd like to contribute to this proje
 
 WSL_PLUS is built on top of the Windows Subsystem for Linux (WSL) technology developed by Microsoft.
 ## Contact
-If you have any questions or need help with Backallup, please don't hesitate to contact us:
+If you have any questions or need help with my script, please don't hesitate to contact me:
 
 - **Email**: [francesco@sorrentino.pro](mailto:francesco@sorrentino.pro)
 - **X/Twitter**: [@SorrentinoPro](https://x.com/SorrentinoPro)
