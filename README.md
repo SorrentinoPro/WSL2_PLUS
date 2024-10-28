@@ -27,7 +27,10 @@ WSL2_PLUS is a PowerShell-based tool designed to simplify the management of Wind
 
 ## Usage
 
-The WSL_PLUS tool provides a simple and intuitive interface for managing WSL distributions. The main menu offers the following options:
+The WSL2_PLUS tool provides a simple and intuitive interface for managing WSL distributions via powershell. 
+once downloaded, simply double click and chose your options, is that easy.
+
+The main menu offers the following options:
 
 - **Manage Current Installed Distribution**: Manage existing WSL distributions, including cloning and deleting.
 - **Install New Distribution**: Install new WSL distributions from the Microsoft Store.
