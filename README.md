@@ -8,7 +8,7 @@ WSL2_PLUS is a PowerShell-based tool designed to simplify the management of Wind
 - **Distribution Management**: Install, update, and manage WSL distributions with ease.
 - **Customization**: Clone and customize WSL distributions to suit your needs.
 - **Internet Connection Detection**: Automatically detect internet connectivity and prompt for installation of required packages.
-- **Root-Only Login**: Set up root-only login for enhanced security.
+- **Root-Only Login**: Set up root-only login for enhanced Testing freedom.
 - **Directory Creation**: Automatically create required directories for WSL2 distributions.
 - **AUDIO & GUI SUPPORT**: FINALLY! Automatically ENABLE AUDIO & GUI for WSL2 distributions with no additional setup, on first distro run just need to:
 ```bash
