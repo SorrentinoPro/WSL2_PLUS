@@ -327,6 +327,230 @@ function SetCustomDistroName {
 }
 
 #--------------------------------
+# CHECK_SET_FIX_AUDIO_GUI
+function  CHECK_SET_FIX_AUDIO_GUI {
+    # Check if Chocolatey is installed
+    if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+        Write-Host "Chocolatey is not installed. Installing Chocolatey now..."
+
+        # Set execution policy to allow script execution
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+
+        # Download and install Chocolatey
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+        Write-Host "Chocolatey has been installed successfully."
+    }
+
+    # Install dependencies
+    $packages = @("pulseaudio", "vcxsrv")
+
+    foreach ($package in $packages) {
+        if (-not (choco list --local-only | Select-String $package)) {
+            Write-Host "$package is not installed. Installing..."
+            choco install $package -y
+        }
+        else {
+            Write-Host "$package is already installed."
+        }
+    }
+
+    # Define paths
+    $PATools = "C:\ProgramData\chocolatey\lib\pulseaudio\tools"
+    # pulse config
+    $PAConfigDir = "$PATools\etc\pulse"
+    # bin
+    $PABin = "$PATools\bin"
+
+    # executable
+    $PAexe = "$PABin\pulseaudio.exe"
+    $VCexe = "C:\Program Files\VcXsrv\vcxsrv.exe"
+
+    #--------------------------------------------------------------
+    # Config.pa file
+    $PAconfig_Pa = "$PAConfigDir\default.pa"
+    $PAconfig_PaContent = @"
+# Windows WSL2 Configuration
+load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12
+load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12
+load-module module-waveout sink_name=output source_name=input record=0
+#load-module module-waveout ##
+"@
+
+    # Check if the file exists
+    if (Test-Path $PAconfig_Pa) {
+        # Read the existing content of the file
+        $fileContent = Get-Content $PAconfig_Pa
+
+        # Remove the specific line
+        $updatedContent = $fileContent | Where-Object { $_ -ne "load-module module-waveout sink_name=output source_name=input" }
+
+        # Write the updated content back to the file
+        $updatedContent | Set-Content $PAconfig_Pa
+
+        # Append the new content
+        Add-Content -Path $PAconfig_Pa -Value $PAconfig_PaContent
+
+        Write-Host "Updated $PAconfig_Pa successfully."
+    }
+    else {
+        Write-Host "The file $PAconfig_Pa does not exist."
+    }
+    #--------------------------------------------------------------
+    # pulse daemon config
+    # Define the path to the configuration file
+    $PADeamon_Conf = "$PAConfigDir\daemon.conf"
+
+    # Define the content to be added
+    $PADeamon_ConfContent = @"
+# Windows WSL2 Configuration
+exit-idle-time=-1
+"@
+
+    # Check if the file exists
+    if (Test-Path $PADeamon_Conf) {
+        # Read the existing content of the file
+        $fileContent = Get-Content $PADeamon_Conf
+
+        # Remove the specific line and prepare to insert the new content
+        $updatedContent = @()
+        $inserted = $false
+
+        foreach ($line in $fileContent) {
+            # Add the current line to the updated content
+            $updatedContent += $line
+        
+            # Check if the current line is the one we want to modify
+            if ($line -eq "; exit-idle-time = 20" -and -not $inserted) {
+                # Append the new content after the specified line
+                $updatedContent += $PADeamon_ConfContent
+                $inserted = $true
+            }
+        }
+
+        # Write the updated content back to the file
+        $updatedContent | Set-Content $PADeamon_Conf
+
+        Write-Host "Updated $PADeamon_Conf successfully."
+    }
+    else {
+        Write-Host "The file $PADeamon_Conf does not exist."
+    }
+    #--------------------------------------------------------------
+    # Function to update firewall rules for the PulseAudio process
+    function Update-FirewallRule {
+        param (
+            [string]$processName,
+            [string]$processPath
+        )
+
+        # Check if the process is running
+        $process = Get-Process -Name $processName -ErrorAction SilentlyContinue
+
+        if ($process) {
+            Write-Host "$processName process is running."
+
+            # Check if firewall rules exist for the process path
+            $firewallRules = Get-NetFirewallRule | Where-Object { $_.DisplayName -like "*$processName*" }
+
+            if ($firewallRules) {
+                # Check if the rules allow both Public and Private
+                $publicRule = $firewallRules | Where-Object { $_.Profile -eq 'Public' }
+                $privateRule = $firewallRules | Where-Object { $_.Profile -eq 'Private' }
+
+                if (-not $publicRule) {
+                    Write-Host "Adding firewall rule to allow $processName on Public network."
+                    New-NetFirewallRule -DisplayName "$processName - Public Access" -Direction Inbound -Action Allow -Protocol TCP -Program $processPath -Profile Public
+                }
+                else {
+                    Write-Host "$processName already has Public network access."
+                }
+
+                if (-not $privateRule) {
+                    Write-Host "Adding firewall rule to allow $processName on Private network."
+                    New-NetFirewallRule -DisplayName "$processName - Private Access" -Direction Inbound -Action Allow -Protocol TCP -Program $processPath -Profile Private
+                }
+                else {
+                    Write-Host "$processName already has Private network access."
+                }
+            }
+            else {
+                Write-Host "No firewall rules found for $processName. Creating rules for both Public and Private."
+                New-NetFirewallRule -DisplayName "$processName - Public Access" -Direction Inbound -Action Allow -Protocol TCP -Program $processPath -Profile Public
+                New-NetFirewallRule -DisplayName "$processName - Private Access" -Direction Inbound -Action Allow -Protocol TCP -Program $processPath -Profile Private
+            }
+        }
+        else {
+            Write-Host "$processName process is not running."
+        }
+    }
+
+    Write-Host "#--------------------------------------------------------------"
+    foreach ($package in $packages) {
+        # Define the task name and paths
+        $taskName = "$package.WSL2"
+        $description = "Task to run $package for WSL2 automatically."
+
+        #---------------------------------------------
+        #> SPECIFIC ACTIONS
+        if ($package -eq "pulseaudio") {
+            # Define the action to start PulseAudio
+            $TaskPath = "powershell.exe"
+            $Argument = "-NoProfile -WindowStyle Hidden -command $PAexe"
+        }
+        elseif ($package -eq "vcxsrv") {
+            # Define the action to start vcxsrv   
+            $TaskPath = $VCexe
+            $Argument = ':0 -multiwindow -clipboard -wgl -ac'
+        }
+        #---------------------------------------------
+
+        $action = New-ScheduledTaskAction -Execute $TaskPath -Argument $Argument
+        # Define the trigger to start at logon
+        $trigger = New-ScheduledTaskTrigger -AtLogon
+
+        # Check if the task already exists
+        if (Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName }) {
+            Write-Host "The task $taskName already exists. Skipping creation."
+        }
+        else {
+            # Register the scheduled task
+            Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $taskName -Description $description -RunLevel Highest
+
+            Write-Host "$taskName has been created and set to start at logon."
+        }
+
+        # Update firewall rules for the PulseAudio process
+        Update-FirewallRule -processName $taskName -processPath $TaskPath
+        Write-Host "$taskName process setup completed."
+    
+        # Start the scheduled task immediately
+        Write-Host "Starting the scheduled task..."
+        Start-ScheduledTask -TaskName $taskName
+
+        # Optionally check if the task is running
+        $task = Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName }
+
+        if ($task) {
+            $taskState = $task.State
+            if ($taskState -eq 'Running') {
+                Write-Host "$taskName is running in the background."
+            }
+            else {
+                Write-Host "$taskName is not running. Current state: $taskState"
+            }
+        }
+        else {
+            Write-Host "$taskName does not exist."
+        }
+        Write-Host "#--------------------------------------------------------------"
+
+    }
+
+}
+
+#--------------------------------
 # Main script logic
 function Main() {
     try {
@@ -334,8 +558,9 @@ function Main() {
         Write-Host "1. Manage current installed distribution"
         Write-Host "2. Install new distribution"
         Write-Host "3. Show installed Distros info"
-        Write-Host "4. EXIT"
-        $choice = Read-Host "Enter your choice (1/2/3/4)"
+        Write-Host "4. CHECK/SET/FIX > AUDIO & GUI"
+        Write-Host "5. EXIT"
+        $choice = Read-Host "Enter your choice (1/2/3/4/5)"
         Write-Host " "
 
         if ($choice -eq 1) {
@@ -401,6 +626,10 @@ function Main() {
             Main
         }
         elseif ($choice -eq 4) {
+            CHECK_SET_FIX_AUDIO_GUI
+            Main
+        }
+        elseif ($choice -eq 5) {
             exit
         }
         else {
