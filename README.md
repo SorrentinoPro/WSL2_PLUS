@@ -1,7 +1,7 @@
-# WSL_PLUS: 
+# WSL2_PLUS: 
 ### A Comprehensive Windows Subsystem for Linux Management Tool
 
-WSL_PLUS is a PowerShell-based tool designed to simplify the management of Windows Subsystem for Linux (WSL) distributions. This project aims to provide a user-friendly interface for installing, managing, and customizing WSL distributions, making it easier for users to take full advantage of the WSL ecosystem.
+WSL2_PLUS is a PowerShell-based tool designed to simplify the management of Windows Subsystem for Linux (WSL) distributions. This project aims to provide a user-friendly interface for installing, managing, and customizing WSL distributions, making it easier for users to take full advantage of the WSL ecosystem.
 
 ## Key Features
 
@@ -9,15 +9,18 @@ WSL_PLUS is a PowerShell-based tool designed to simplify the management of Windo
 - **Customization**: Clone and customize WSL distributions to suit your needs.
 - **Internet Connection Detection**: Automatically detect internet connectivity and prompt for installation of required packages.
 - **Root-Only Login**: Set up root-only login for enhanced security.
-- **Directory Creation**: Automatically create required directories for WSL distributions.
-
+- **Directory Creation**: Automatically create required directories for WSL2 distributions.
+- **AUDIO & GUI SUPPORT**: FINALLY! Automatically ENABLE AUDIO & GUI for WSL2 distributions with no additional setup, on first distro run just need to:
+```bash
+  apt install pulseaudio
+```
 ## Getting Started
 
 1. Clone the repository using:
  ```bash
-  git clone https://github.com/SorrentinoPro/WSL_PLUS.git
+  git clone https://github.com/SorrentinoPro/WSL2_PLUS.git
 ```
-2. Run the `WSL_PLUS.ps1` file to launch the WSL_PLUS tool.
+2. Run the `WSL_PLUS.ps1` file to launch the WSL2_PLUS tool.
 3. Follow the on-screen instructions to manage your WSL distributions.
 
 6. The File is plug & play double click it and it will handle all the admin rights from any folder, feel free to move it around. :neckbeard:
@@ -29,7 +32,8 @@ The WSL_PLUS tool provides a simple and intuitive interface for managing WSL dis
 - **Manage Current Installed Distribution**: Manage existing WSL distributions, including cloning and deleting.
 - **Install New Distribution**: Install new WSL distributions from the Microsoft Store.
 - **Show Installed Distros Info**: Display information about installed WSL distributions.
-- **EXIT**: Exit the WSL_PLUS tool.
+- **Set/Fix/check AUDIO & GUI**: AUTO configure pulseaudio and vcxsrv on windows with everything needed such as firewall and auto start tasks on reboot.
+- **EXIT**: Exit the WSL2_PLUS tool.
 
 ## Troubleshooting
 
