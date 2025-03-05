@@ -8,40 +8,76 @@ WSL2_PLUS is a PowerShell-based tool designed to simplify the management of Wind
 - **Distribution Management**: Install, update, and manage WSL distributions with ease.
 - **Customization**: Clone and customize WSL distributions to suit your needs.
 - **Internet Connection Detection**: Automatically detect internet connectivity and prompt for installation of required packages.
-- **Root-Only Login**: Set up root-only login for enhanced Testing freedom.
+- **Root-Only Login**: Set up root-only login for enhanced testing freedom.
 - **Directory Creation**: Automatically create required directories for WSL2 distributions.
-- **AUDIO & GUI SUPPORT**: FINALLY! Automatically ENABLE AUDIO & GUI for WSL2 distributions with no additional setup, on first distro run just need to:
-```bash
-  apt install pulseaudio
-```
+- **AUDIO & GUI SUPPORT**: Fully automated audio/video setup with [wsl_stabilizer.sh](#stabilization-script) including:
+  - PulseAudio configuration
+  - ALSA device routing
+  - X11 display setup
+  - Self-healing audio daemon
+  - Validation tests
+
 ## Getting Started
 
-1. Clone the repository using:
- ```bash
-  git clone https://github.com/SorrentinoPro/WSL2_PLUS.git
+1. Clone the repository:
+```bash
+git clone https://github.com/SorrentinoPro/WSL2_PLUS.git
 ```
-2. Run the `WSL_PLUS.ps1` file to launch the WSL2_PLUS tool.
-3. Follow the on-screen instructions to manage your WSL distributions.
+2. Run the `WSL_PLUS.ps1` file to launch the management tool
 
-6. The File is plug & play double click it and it will handle all the admin rights from any folder, feel free to move it around. :neckbeard:
+3. The system is plug & play - double click to run with admin rights from any folder
+4. **For Audio/Video Support**:
+   - Copy `wsl_stabilizer.sh` to your WSL instance
+   - Run the script as shown below
+
+## Stabilization Script
+
+The `wsl_stabilizer.sh` automates WSL audio/video configuration. Simply:
+
+1. Copy the script to your WSL instance
+2. Make it executable:
+```bash
+chmod +x wsl_stabilizer.sh
+```
+3. Run it:
+```bash
+./wsl_stabilizer.sh
+```
+
+**What it does**:
+✅ Installs required packages (pulseaudio/alsa-utils/x11-apps)  
+✅ Configures PulseAudio to never timeout  
+✅ Sets up ALSA-PulseAudio bridging  
+✅ Configures X11 display settings  
+✅ Runs validation tests (audio playback/recording/graphics)
 
 ## Usage
 
-The WSL2_PLUS tool provides a simple and intuitive interface for managing WSL distributions via powershell. 
-once downloaded, simply double click and chose your options, is that easy.
+The WSL2_PLUS tool provides a simple interface for managing WSL distributions:
 
-The main menu offers the following options:
-
-- **Manage Current Installed Distribution**: Manage existing WSL distributions, including cloning and deleting.
-- **Install New Distribution**: Install new WSL distributions from the Microsoft Store.
-- **Show Installed Distros Info**: Display information about installed WSL distributions.
-- **Set/Fix/check AUDIO & GUI**: AUTO configure pulseaudio and vcxsrv on windows with everything needed such as firewall and auto start tasks on reboot.
-- **EXIT**: Exit the WSL2_PLUS tool.
+**Main Menu Options**:
+- Manage Current Installed Distribution
+- Install New Distribution
+- Show Installed Distros Info
+- Set/Fix/check AUDIO & GUI (automates Windows-side configuration)
+- EXIT
 
 ## Troubleshooting
 
-- If you encounter any issues, please check the error messages and refer to the [Troubleshooting Guide](TROUBLESHOOTING.md).
-- If you need further assistance, please open an issue on the GitHub repository.
+If using `wsl_stabilizer.sh`, ensure:
+1. Windows has:
+   - X Server running (VcXsrv/MobaXterm)
+   - PulseAudio for Windows running
+   - Microphone permissions enabled in Windows
+
+Common fixes:
+```bash
+# Restart PulseAudio in WSL
+pulseaudio --kill && pulseaudio --start
+
+# Regenerate ALSA config
+alsa force-reload
+```
 
 ## License
 
@@ -51,14 +87,20 @@ WSL_PLUS is licensed under the [MIT License](LICENSE.md).
 
 Contributions to WSL_PLUS are welcome! If you'd like to contribute to this project, please:
 
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Submit a pull request.
+1. Fork the repository
+2. Create a new branch for your feature or bug fix
+3. Submit a pull request
 
 ## Acknowledgments
 
-WSL_PLUS is built on top of the Windows Subsystem for Linux (WSL) technology developed by Microsoft.
+WSL_PLUS is built on top of the Windows Subsystem for Linux (WSL) technology developed by Microsoft. Special thanks to:
+
+- The WSL community for testing and feedback
+- PulseAudio and ALSA maintainers
+- Open-source X Server projects
+
 ## Contact
+
 If you have any questions or need help with my script, please don't hesitate to contact me:
 
 - **Email**: [francesco@sorrentino.pro](mailto:francesco@sorrentino.pro)
