@@ -371,12 +371,14 @@ function  CHECK_SET_FIX_AUDIO_GUI {
     # Config.pa file
     $PAconfig_Pa = "$PAConfigDir\default.pa"
     $PAconfig_PaContent = @"
-# Windows WSL2 Configuration
-load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12
-load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12
-load-module module-waveout sink_name=output source_name=input record=0
-#load-module module-waveout ##
-"@
+    # Windows WSL2 Configuration
+    # Load Windows microphone and Audio card as a source
+    load-module module-waveout sink_name=output source_name=input
+    load-module module-native-protocol-tcp auth-ip-acl=127.0.0.0/8;192.168.0.0/16 auth-anonymous=1
+    load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.0/8;192.168.0.0/16 auth-anonymous=1
+    set-default-source input
+    set-default-sink output
+    "@
 
     # Check if the file exists
     if (Test-Path $PAconfig_Pa) {
