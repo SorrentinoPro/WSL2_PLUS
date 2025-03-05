@@ -43,6 +43,11 @@ chmod +x wsl_stabilizer.sh
 ```bash
 ./wsl_stabilizer.sh
 ```
+or
+**Install/Upgrade in One Line**  
+```bash
+wget -O wsl_stabilizer.sh https://raw.githubusercontent.com/SorrentinoPro/WSL2_PLUS/main/wsl_stabilizer.sh && chmod +x wsl_stabilizer.sh
+```
 
 **What it does**:
 ✅ Installs required packages (pulseaudio/alsa-utils/x11-apps)  
